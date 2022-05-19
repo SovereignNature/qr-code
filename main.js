@@ -3,11 +3,10 @@ const {
     createCanvas,
     loadImage
 } = require("canvas");
-const fs = require('fs');
+const fs = require('fs').promises;
 const processArgs = require('command-line-args');
 
-const ArgsDefinitions = [
-    {
+const ArgsDefinitions = [{
         name: 'verbose',
         alias: 'v',
         type: Boolean,
@@ -66,8 +65,8 @@ async function drawQRCode(canvas, data, size, color) {
     });
 }
 
-async function drawLogo(canvas, logo, ratio = 0.37) {
-    const logo_size = size * ratio;
+async function drawLogo(canvas, logo, size, ratio = 0.37, logo_size_ = undefined) {
+    const logo_size = logo_size_ ?? size * ratio;
     const pos = (size - logo_size) / 2;
 
     const img = await loadImage(logo);
@@ -92,14 +91,14 @@ async function genQRCode(options) {
 
     await drawQRCode(canvas, data, size, color);
 
-    await drawLogo(canvas, logo);
+    await drawLogo(canvas, logo, size);
 
     // Save to .png
     const buffer = canvas.toBuffer('image/png');
-    fs.writeFileSync(out, buffer);
+    await fs.writeFile(out, buffer);
 
     if (verbose)
-        console.log(`out: ${out} size: ${size} pos: ${pos} data: ${data}`);
+        console.log(`${out}\t size: ${size}\t:: ${data}`);
 }
 
 async function main() {
